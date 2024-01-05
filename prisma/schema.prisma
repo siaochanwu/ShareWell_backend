@@ -1,17 +1,54 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
-generator client {
-  provider = "prisma-client-js"
-}
-
 model User {
-  id         String       @id @unique(map: "id_UNIQUE")
+  id         String    @id @unique(map: "id_UNIQUE") @db.VarChar(40)
   name       String    @db.VarChar(45)
   nickName   String?   @db.VarChar(45)
   email      String    @db.VarChar(45)
+  createtime DateTime  @default(now()) @db.Timestamp(0)
+  updatetime DateTime? @default(now()) @db.Timestamp(0)
+}
+
+model Item {
+  id         String    @id @unique(map: "id_UNIQUE") @db.VarChar(40)
+  name       String    @db.VarChar(45)
+  projectId  String    @db.VarChar(45)
+  price      Decimal   @db.Decimal(10, 2)
+  date       DateTime  @db.Date
+  createtime DateTime  @default(now()) @db.Timestamp(0)
+  updatetime DateTime? @default(now()) @db.Timestamp(0)
+}
+
+model ItemGroup {
+  id         String    @id @unique(map: "id_UNIQUE") @db.VarChar(40)
+  userId     String    @db.VarChar(45)
+  itemId     String    @db.VarChar(45)
+  createtime DateTime  @default(now()) @db.Timestamp(0)
+  updatetime DateTime? @default(now()) @db.Timestamp(0)
+}
+
+model Project {
+  id         String    @id @unique(map: "id_UNIQUE") @db.VarChar(40)
+  name       String    @db.VarChar(45)
+  startDate  DateTime  @db.Date
+  endDate    DateTime  @db.Date
+  currency   String    @db.VarChar(45)
+  location   String    @db.VarChar(45)
+  createtime DateTime  @default(now()) @db.Timestamp(0)
+  updatetime DateTime? @default(now()) @db.Timestamp(0)
+}
+
+model ProjectGroup {
+  id         String    @id @unique(map: "id_UNIQUE") @db.VarChar(40)
+  userId     String    @db.VarChar(45)
+  projectId  String    @db.VarChar(45)
   createtime DateTime  @default(now()) @db.Timestamp(0)
   updatetime DateTime? @default(now()) @db.Timestamp(0)
 }
