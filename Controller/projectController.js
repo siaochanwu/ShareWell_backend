@@ -16,6 +16,17 @@ module.exports = class userController{
     }
   }
 
+  async getOneProject(req, res, next) {
+    console.log(req.params)
+    const {id} = req.params
+
+    try {
+      const findOneProjectData = await projectModel.findOneProjectData(id);
+      res.status(200).json({ data: findOneProjectData, message: 'findOne' });
+    } catch(err) {
+      throw err
+    }
+  }
 
   async createProject(req, res, next) {
     try {

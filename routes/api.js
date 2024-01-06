@@ -14,6 +14,7 @@ router.put('/users/:id', user.updateUser);
 router.delete('/users/:id', user.deleteUser);
 
 router.get('/projects', project.getAllProject);
+router.get('/projects/:id', project.getOneProject);
 router.post('/projects', project.createProject);
 
 router.delete('/projects/:projectid', project.deleteUser);
