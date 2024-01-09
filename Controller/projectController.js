@@ -18,10 +18,10 @@ module.exports = class userController{
 
   async getOneProject(req, res, next) {
     console.log(req.params)
-    const {id} = req.params
+    const {projectid} = req.params
 
     try {
-      const findOneProjectData = await projectModel.findOneProjectData(id);
+      const findOneProjectData = await projectModel.findOneProjectData(projectid);
       res.status(200).json({ data: findOneProjectData, message: 'findOne' });
     } catch(err) {
       throw err
@@ -39,11 +39,23 @@ module.exports = class userController{
   }
 
   async deleteUser(req, res, next) {
+    console.log(req.params)
+    const {projectid} = req.params
     try {
-      console.log(req.params)
-      const {projectid} = req.params
       const deleteProjectData = await projectModel.deleteProject(projectid)
       res.status(200).json({ data: deleteProjectData, message: 'deleteprojectData' });
+    } catch(err) {
+      throw err
+    }
+  }
+
+  async getOneProjectUser(req, res, next) {
+    console.log(req.params)
+    const {projectid} = req.params
+
+    try {
+      const getOneProjectUser = await projectModel.findOneProjectGroup(projectid)
+      res.status(200).json({ data: getOneProjectUser, message: 'getOneProjectUser' });
     } catch(err) {
       throw err
     }

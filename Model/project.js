@@ -3,7 +3,7 @@ const { v4: uuidv4 } = require("uuid");
 
 const prisma = new PrismaClient();
 
-module.exports = class project {
+module.exports = class Project {
   constructor() {
     this.findAllProjectGroupData = this.findAllProjectGroupData.bind();
     this.createProjectGroup = this.createProjectGroup.bind();
@@ -12,39 +12,51 @@ module.exports = class project {
 
   //find all
   async findAllProjectData() {
-    const allProject = await prisma.Project.findMany();
-    for (let i = 0; i < allProject.length; i++) {
-      allProject[i].users = [];
-      const data = await this.findAllProjectGroupData(allProject[i].id);
-      data.map((item) => {
-        allProject[i].users.push(item.name);
-      });
+    try {
+      const allProject = await prisma.Project.findMany();
+      for (let i = 0; i < allProject.length; i++) {
+        allProject[i].users = [];
+        const data = await this.findAllProjectGroupData(allProject[i].id);
+        data.map((item) => {
+          allProject[i].users.push(item.name);
+        });
+      }
+      return allProject;
+    } catch(err) {
+      throw err
     }
-    return allProject;
   }
 
   async findAllProjectGroupData(projectId) {
-    //userId > user_name  join
-    const allProjectGroup =
-      await prisma.$queryRaw`SELECT U.name FROM ProjectGroup as P LEFT JOIN User as U ON P.userId=U.id where P.projectId=${projectId}`;
-    //array
-    return allProjectGroup;
+    try {
+      //userId > user_name  join
+      const allProjectGroup =
+        await prisma.$queryRaw`SELECT U.name FROM ProjectGroup as P 
+        LEFT JOIN User as U ON P.userId=U.id where P.projectId=${projectId}`;
+      return allProjectGroup;
+    } catch(err) {
+      throw err
+    }
   }
 
   async findOneProjectData(id) {
-    const project = await prisma.Project.findUnique({
-      where: {
-        id: id,
-      },
-    });
-
-    project.users = [];
-    const data = await this.findAllProjectGroupData(id);
-    data.map((item) => {
-      project.users.push(item.name);
-    });
-
-    return project;
+    try {
+      const project = await prisma.Project.findUnique({
+        where: {
+          id: id,
+        },
+      });
+  
+      project.users = [];
+      const data = await this.findAllProjectGroupData(id);
+      data.map((item) => {
+        project.users.push(item.name);
+      });
+  
+      return project;
+    } catch(err) {
+      throw err
+    }
   }
 
   //create new
@@ -98,7 +110,6 @@ module.exports = class project {
 
   //delete project and projectGroup
   async deleteProject(projectId) {
-    console.log("projectId", projectId);
     try {
       const deleteProjectData = await prisma.Project.delete({
         where: {
@@ -122,6 +133,16 @@ module.exports = class project {
         },
       });
       return deleteProjectGroup;
+    } catch (e) {
+      console.log(e);
+      throw e;
+    }
+  }
+
+  async findOneProjectGroup(projectId){
+    try {
+      const findProjectGroup = await prisma.$queryRaw`SELECT U.name, U.id FROM ProjectGroup as P LEFT JOIN User as U ON P.userId=U.id where P.projectId=${projectId}`;
+      return findProjectGroup;
     } catch (e) {
       console.log(e);
       throw e;

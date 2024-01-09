@@ -16,24 +16,6 @@ model User {
   updatetime DateTime? @default(now()) @db.Timestamp(0)
 }
 
-model Item {
-  id         String    @id @unique(map: "id_UNIQUE") @db.VarChar(40)
-  name       String    @db.VarChar(45)
-  projectId  String    @db.VarChar(45)
-  price      Decimal   @db.Decimal(10, 2)
-  date       DateTime  @db.Date
-  createtime DateTime  @default(now()) @db.Timestamp(0)
-  updatetime DateTime? @default(now()) @db.Timestamp(0)
-}
-
-model ItemGroup {
-  id         String    @id @unique(map: "id_UNIQUE") @db.VarChar(40)
-  userId     String    @db.VarChar(45)
-  itemId     String    @db.VarChar(45)
-  createtime DateTime  @default(now()) @db.Timestamp(0)
-  updatetime DateTime? @default(now()) @db.Timestamp(0)
-}
-
 model Project {
   id         String    @id @unique(map: "id_UNIQUE") @db.VarChar(40)
   name       String    @db.VarChar(45)
@@ -49,6 +31,27 @@ model ProjectGroup {
   id         String    @id @unique(map: "id_UNIQUE") @db.VarChar(40)
   userId     String    @db.VarChar(45)
   projectId  String    @db.VarChar(45)
+  createtime DateTime  @default(now()) @db.Timestamp(0)
+  updatetime DateTime? @default(now()) @db.Timestamp(0)
+}
+
+model Item {
+  id         String    @id @unique(map: "id_UNIQUE") @db.VarChar(40)
+  name       String    @db.VarChar(45)
+  projectId  String    @db.VarChar(45)
+  price      Decimal   @db.Decimal(10, 2)
+  date       DateTime  @db.Date
+  payerId    String    @db.VarChar(45)
+  payment    Decimal   @db.Decimal(10, 2)
+  createtime DateTime  @default(now()) @db.Timestamp(0)
+  updatetime DateTime? @default(now()) @db.Timestamp(0)
+}
+
+model ItemGroup {
+  id         String    @id @unique(map: "id_UNIQUE") @db.VarChar(40)
+  userId     String    @db.VarChar(45)
+  itemId     String    @db.VarChar(45)
+  payment    Decimal   @db.Decimal(10, 2)
   createtime DateTime  @default(now()) @db.Timestamp(0)
   updatetime DateTime? @default(now()) @db.Timestamp(0)
 }
