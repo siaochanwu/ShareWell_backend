@@ -28,6 +28,10 @@ router.get('/projectUser/:projectid', project.getOneProjectUser); //各專案的
 router.get('/items/:id', item.getAllItems)
 router.post('/items', item.createItem)
 
+//item 支付關係 by item_id ->user name.payment.payer
+router.post('/itemRelations', item.getOneItemRelations)
+
+
 
 
 

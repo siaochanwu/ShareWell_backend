@@ -15,7 +15,7 @@ module.exports = class itemController {
         message: 'allItem'
       })
     } catch(err) {
-      throw err
+      return res.status(500).json({ success: false, message: err.message });
     }
   }
 
@@ -28,7 +28,21 @@ module.exports = class itemController {
         message: 'createNewItem'
       })
     } catch(err) {
-      throw err
+      return res.status(500).json({ success: false, message: err.message });
+    }
+  }
+
+  async getOneItemRelations(req, res, next) {
+    const {itemId, payer} = req.body
+    console.log(req.body, itemId, payer)
+    try{
+      const OneItemRelations = await itemModel.getItemPaymentRelation(itemId, payer)
+      res.status(200).json({
+        data: OneItemRelations,
+        message: 'OneItemRelations'
+      })
+    } catch(err) {
+      return res.status(500).json({ success: false, message: err.message });
     }
   }
 }

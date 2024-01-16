@@ -12,7 +12,7 @@ module.exports = class userController{
       res.status(200).json({ data: findAllUsersData, message: 'findAll' });
     } catch(err) {
       console.log(err)
-      throw err
+      return res.status(500).json({ success: false, message: err.message });
     }
   }
 
@@ -22,7 +22,7 @@ module.exports = class userController{
       const createUserData = await userModel.createUser(req.body)
       res.status(200).json({ data: createUserData, message: 'createUser' });
     } catch(err) {
-      throw err
+      return res.status(500).json({ success: false, message: err.message });
     }
   }
 
@@ -33,7 +33,7 @@ module.exports = class userController{
       const deleteUserData = await userModel.deleteUser(id)
       res.status(200).json({ data: deleteUserData, message: 'deleteUserData' });
     } catch(err) {
-      throw err
+      return res.status(500).json({ success: false, message: err.message });
     }
   }
 
@@ -44,7 +44,7 @@ module.exports = class userController{
       const updateUserData = await userModel.updateUser(id, req.body)
       res.status(200).json({ data: updateUserData, message: 'updateUserData' });
     } catch(err) {
-      throw err
+      return res.status(500).json({ success: false, message: err.message });
     }
   }
 

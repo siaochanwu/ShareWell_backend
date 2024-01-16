@@ -9,19 +9,14 @@ module.exports = class Item {
   }
 
   //1.find all item
-
   async findAllItems(projectId) {
     try{
-      const allItems = await prisma.item.findMany({
-        where: {
-          projectId: projectId
-        }
-      })
+      const allItems = await prisma.$queryRaw`SELECT I.*, U.name as payer FROM Item as I 
+      LEFT JOIN User as U ON I.payerId=U.id where I.projectId=${projectId}`
       return allItems
     } catch(err) {
       throw err
     }
-
   }
 
   //2.add one item
@@ -33,33 +28,38 @@ module.exports = class Item {
     //收 (+)  付 (-)
 
     try {
-      const newItem = await prisma.item.create({
-        data: {
-          id: itemId,
-          name,
-          projectId,
-          price,
-          date: new Date(itemDate),
-          payerId,
-          payment
+      await prisma.$transaction(async (tx) => {
+        const newItem = await tx.item.create({
+          data: {
+            id: itemId,
+            name,
+            projectId,
+            price,
+            date: new Date(itemDate),
+            payerId,
+            payment
+          }
+        })
+  
+        for (let user of users) {
+          console.log('user: ', user, payerId)
+          if(user == payerId) {
+            const result = await this.createItemGroup(user, itemId, receiver)
+            // console.log('1111 result', result)
+          } else {
+            const result = await this.createItemGroup(user, itemId, -eachPayment)
+            // console.log('22222 result', result)
+          }
         }
+        return newItem
       })
-
-      users.map(async(user) => {
-        if(user == payerId) {
-          const result = await this.createItemGroup(user, itemId, receiver)
-          // console.log('1111 result', result)
-        } else {
-          const result = await this.createItemGroup(user, itemId, -eachPayment)
-          // console.log('22222 result', result)
-        }
-      })
-
-      //會比前面更早執行
-      return newItem
     } catch(err) {
-      throw err
+      console.error('Transaction failed, rollback...', err.message);
+      prisma.$rollback();
+    } finally {
+      await prisma.$disconnect();
     }
+    
   }
 
   async createItemGroup(userId, itemId, payment) {
@@ -73,6 +73,17 @@ module.exports = class Item {
         }
       })
       console.log(itemGroup)
+    } catch(err) {
+      throw err
+    }
+  }
+
+  async getItemPaymentRelation(itemId, payer) {
+    try {
+      const allItems = await prisma.$queryRaw`SELECT I.*, U.name as name FROM ItemGroup as I 
+      LEFT JOIN User as U ON I.userId=U.id where I.itemId=${itemId}`
+      allItems.map((item) => item.payer = payer)
+      return allItems
     } catch(err) {
       throw err
     }

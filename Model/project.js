@@ -6,8 +6,6 @@ const prisma = new PrismaClient();
 module.exports = class Project {
   constructor() {
     this.findAllProjectGroupData = this.findAllProjectGroupData.bind();
-    this.createProjectGroup = this.createProjectGroup.bind();
-    this.deleteProjectGroup = this.deleteProjectGroup.bind();
   }
 
   //find all
@@ -64,78 +62,66 @@ module.exports = class Project {
   async createProject({ name, startDate, endDate, currency, location, users }) {
     const projectId = uuidv4();
     try {
-      const createProjectData = await prisma.Project.create({
-        data: {
-          id: projectId,
-          name,
-          startDate: new Date(startDate),
-          endDate: new Date(endDate),
-          currency,
-          location,
-        },
-      });
-
-      for (let i = 0; i < users.length; i++) {
-        await this.createProjectGroup(users[i], projectId);
-      }
-
-      return createProjectData;
+      await prisma.$transaction(async (tx) => {
+        // Code running in a transaction...
+        const createProjectData = await tx.Project.create({
+          data: {
+            id: projectId,
+            name,
+            startDate: new Date(startDate),
+            endDate: new Date(endDate),
+            currency,
+            location,
+          },
+        });
+  
+        for (let i = 0; i < users.length; i++) {
+          await tx.ProjectGroup.create({
+            data: {
+              id: uuidv4(),
+              userId,
+              projectId,
+            }
+          })
+        }
+        return createProjectData;
+      })
     } catch (err) {
-      console.log(err);
+      console.error('Transaction failed, rollback...', err.message);
+      prisma.$rollback();
+    } finally {
+      await prisma.$disconnect();
     }
   }
 
-  async createProjectGroup(userId, projectId) {
-    try {
-      const createProjectGroup = await prisma.ProjectGroup.create({
-        data: {
-          id: uuidv4(),
-          userId,
-          projectId,
-        },
-      });
-
-      return createProjectGroup;
-
-      // return new Promise((resolve, reject) => {
-
-      // })
-    } catch (err) {
-      console.log(err);
-    }
-  }
 
   //update
   //check whether projectGroup change
 
+  
+
   //delete project and projectGroup
   async deleteProject(projectId) {
     try {
-      const deleteProjectData = await prisma.Project.delete({
-        where: {
-          id: projectId,
-        },
-      });
-      await this.deleteProjectGroup(projectId);
-
-      return deleteProjectData;
+      await prisma.$transaction(async (tx) => {
+        const deleteProjectData = await tx.Project.delete({
+          where: {
+            id: projectId,
+          },
+        });
+        await tx.ProjectGroup.deleteMany({
+          where: {
+            projectId: projectId,
+          },
+        });
+  
+        return deleteProjectData;
+      })
     } catch (e) {
-      console.log(e);
-      throw e;
-    }
-  }
-
-  async deleteProjectGroup(projectId) {
-    try {
-      const deleteProjectGroup = await prisma.ProjectGroup.deleteMany({
-        where: {
-          projectId: projectId,
-        },
-      });
-      return deleteProjectGroup;
-    } catch (e) {
-      console.log(e);
-      throw e;
+      console.error('Transaction failed, rollback...', err.message);
+      prisma.$rollback();
+    } finally {
+      await prisma.$disconnect();
     }
   }
 

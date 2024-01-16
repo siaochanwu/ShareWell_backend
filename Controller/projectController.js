@@ -12,7 +12,7 @@ module.exports = class userController{
       res.status(200).json({ data: findAllProjectData, message: 'findAll' });
     } catch(err) {
       console.log(err)
-      throw err
+      return res.status(500).json({ success: false, message: err.message });
     }
   }
 
@@ -24,7 +24,7 @@ module.exports = class userController{
       const findOneProjectData = await projectModel.findOneProjectData(projectid);
       res.status(200).json({ data: findOneProjectData, message: 'findOne' });
     } catch(err) {
-      throw err
+      return res.status(500).json({ success: false, message: err.message });
     }
   }
 
@@ -34,7 +34,7 @@ module.exports = class userController{
       const createProjectData = await projectModel.createProject(req.body)
       res.status(200).json({ data: createProjectData, message: 'createProject' });
     } catch(err) {
-      throw err
+      return res.status(500).json({ success: false, message: err.message });
     }
   }
 
@@ -45,7 +45,7 @@ module.exports = class userController{
       const deleteProjectData = await projectModel.deleteProject(projectid)
       res.status(200).json({ data: deleteProjectData, message: 'deleteprojectData' });
     } catch(err) {
-      throw err
+      return res.status(500).json({ success: false, message: err.message });
     }
   }
 
@@ -57,7 +57,7 @@ module.exports = class userController{
       const getOneProjectUser = await projectModel.findOneProjectGroup(projectid)
       res.status(200).json({ data: getOneProjectUser, message: 'getOneProjectUser' });
     } catch(err) {
-      throw err
+      return res.status(500).json({ success: false, message: err.message });
     }
   }
 
