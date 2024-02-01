@@ -38,7 +38,7 @@ module.exports = class userController{
     }
   }
 
-  async deleteUser(req, res, next) {
+  async deleteProject(req, res, next) {
     console.log(req.params)
     const {projectid} = req.params
     try {
@@ -56,6 +56,17 @@ module.exports = class userController{
     try {
       const getOneProjectUser = await projectModel.findOneProjectGroup(projectid)
       res.status(200).json({ data: getOneProjectUser, message: 'getOneProjectUser' });
+    } catch(err) {
+      return res.status(500).json({ success: false, message: err.message });
+    }
+  }
+
+  async getProjectByUserID(req, res, next) {
+    try {
+      console.log(req.body)
+      const {userId} = req.body
+      const userProjectData = await projectModel.findUserProject(userId)
+      res.status(200).json({ data: userProjectData, message: 'userProjectData' });
     } catch(err) {
       return res.status(500).json({ success: false, message: err.message });
     }

@@ -14,6 +14,16 @@ const prisma = new PrismaClient()
     return allUser
   }
 
+  async findOneUsersData(userId) {
+    const OneUser = await prisma.User.findUnique({
+      where: {
+        id: userId
+      }
+    })
+    console.log(OneUser)
+    return OneUser
+  }
+
   async createUser(userData) {
     try {
       const userExist = await prisma.User.findFirst({

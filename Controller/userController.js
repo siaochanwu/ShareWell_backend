@@ -16,6 +16,16 @@ module.exports = class userController{
     }
   }
 
+  async getOneUser(req, res, next) {
+    try {
+      const {userId} = req.body
+      const getUserData = await userModel.findOneUsersData(userId)
+      res.status(200).json({ data: getUserData, message: 'getOneUserData' });
+    } catch(err) {
+      return res.status(500).json({ success: false, message: err.message });
+    }
+  }
+
   async createUser(req, res, next) {
     try {
       console.log(req.body)

@@ -10,26 +10,37 @@ const project = new projectController()
 const itemController = require('../Controller/itemController');
 const item = new itemController()
 
-
+//User
 router.get('/users', user.getAllUser);
+router.post('/userInfo', user.getOneUser);//get single user data by userid
 router.post('/users', user.createUser);
 router.put('/users/:id', user.updateUser);
 router.delete('/users/:id', user.deleteUser);
 
+
+//Project page
 router.get('/projects', project.getAllProject);
 router.get('/projects/:projectid', project.getOneProject);
 router.post('/projects', project.createProject);
 //UPDATE PROJECT
-router.delete('/projects/:projectid', project.deleteUser);
-
-router.get('/projectUser/:projectid', project.getOneProjectUser); //各專案的參與者
+router.delete('/projects/:projectid', project.deleteProject);
 
 
+
+//Item
 router.get('/items/:id', item.getAllItems)
 router.post('/items', item.createItem)
+router.delete('/items/:id', item.deleteItem)
+router.get('/projectUser/:projectid', project.getOneProjectUser); //各專案的參與者
+router.post('/itemRelations', item.getOneItemRelations)//支付關係
 
-//item 支付關係 by item_id ->user name.payment.payer
-router.post('/itemRelations', item.getOneItemRelations)
+
+
+//SingleUser
+router.post('/userProject', project.getProjectByUserID)//list all projects
+router.post('/userProject/:projectid', item.getUserItem)//list all payment by project
+router.post('/userPayment', item.getPaymentByUserAndProject)//user total payment by project
+
 
 
 

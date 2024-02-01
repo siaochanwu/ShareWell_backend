@@ -44,10 +44,10 @@ module.exports = class Item {
         for (let user of users) {
           console.log('user: ', user, payerId)
           if(user == payerId) {
-            const result = await this.createItemGroup(user, itemId, receiver)
+            const result = await this.createItemGroup(user, itemId, receiver, payerId)
             // console.log('1111 result', result)
           } else {
-            const result = await this.createItemGroup(user, itemId, -eachPayment)
+            const result = await this.createItemGroup(user, itemId, -eachPayment, payerId)
             // console.log('22222 result', result)
           }
         }
@@ -62,14 +62,15 @@ module.exports = class Item {
     
   }
 
-  async createItemGroup(userId, itemId, payment) {
+  async createItemGroup(userId, itemId, payment, payerId) {
     try {
       const itemGroup = await prisma.itemGroup.create({
         data: {
           id: uuidv4(),
           userId,
           itemId,
-          payment
+          payment,
+          payerId
         }
       })
       console.log(itemGroup)
@@ -78,17 +79,111 @@ module.exports = class Item {
     }
   }
 
-  async getItemPaymentRelation(itemId, payer) {
+
+  async deleteOneItem(id) {
     try {
-      const allItems = await prisma.$queryRaw`SELECT I.*, U.name as name FROM ItemGroup as I 
-      LEFT JOIN User as U ON I.userId=U.id where I.itemId=${itemId}`
-      allItems.map((item) => item.payer = payer)
-      return allItems
+      await prisma.$transaction(async (tx) => {
+        const deleteitem = await tx.item.deleteMany({
+          where: {
+            id
+          }
+        })
+
+        await tx.itemGroup.deleteMany({
+          where: {
+            itemId: id
+          }
+        })
+        
+        return deleteitem
+      })
+    } catch(err) {
+      console.error('Transaction failed, rollback...', err.message);
+      prisma.$rollback();
+    } finally {
+      await prisma.$disconnect();
+    }
+  }
+
+  async getItemPaymentRelation(itemId) {
+    try {
+      let allItems = []
+      await prisma.$transaction(async (tx) => {
+        allItems = await tx.$queryRaw`SELECT I.*, U.name as name 
+        FROM ItemGroup as I 
+        LEFT JOIN User as U 
+        ON I.userId=U.id 
+        WHERE I.itemId=${itemId}
+        `;
+
+        for (let item of allItems) {
+          const data = await tx.$queryRaw`SELECT distinct U.name 
+          FROM ItemGroup as I 
+          LEFT JOIN User as U 
+          ON I.payerId=U.id 
+          WHERE I.payerId=${item.payerId}
+          `;
+          item.payerName = data[0].name
+        }
+      })
+      return allItems 
+    } catch(err) {
+      console.error('Transaction failed, rollback...', err.message);
+      prisma.$rollback();
+    } finally {
+      await prisma.$disconnect();
+    }
+  }
+
+
+  async getPaymentTotalByUserAndProject(userId) {
+    try {
+      const payment = await prisma.$queryRaw`SELECT I.projectId, G.userId, SUM(G.payment) AS total
+      FROM ItemGroup AS G 
+      LEFT JOIN Item AS I
+      ON G.itemId=I.id 
+      WHERE G.userId=${userId}
+      GROUP BY I.projectId, G.userId
+      `;
+      return payment
     } catch(err) {
       throw err
     }
   }
 
+  async findUserItems(userId, projectid) {
+    try {
+      let allItems = []
+      await prisma.$transaction(async (tx) => {
+        allItems = await tx.item.findMany({
+          where: {
+            projectId: projectid
+          }
+        })
+
+        for (let item of allItems) {
+          const payment = await tx.$queryRaw`SELECT A.*, B.name AS payerName
+          FROM ItemGroup AS A 
+          LEFT JOIN User AS B
+          ON A.payerId=B.id 
+          WHERE A.userId=${userId} 
+          AND A.itemId=${item.id}
+          `;
+
+          if (payment.length > 0) {
+            item.userPayment = payment[0].payment;
+            item.userPayTo = payment[0].payerName;
+          }
+        }
+      })
+      return allItems 
+    } catch(err) {
+      console.error('Transaction failed, rollback...', err.message);
+      prisma.$rollback();
+    } finally {
+      await prisma.$disconnect();
+    }
+  }
 
   
 };

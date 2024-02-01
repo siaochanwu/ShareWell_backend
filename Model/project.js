@@ -134,4 +134,13 @@ module.exports = class Project {
       throw e;
     }
   }
+
+  async findUserProject(userId) {
+    try {
+      const allProject = await prisma.$queryRaw`SELECT B.* FROM ProjectGroup AS A LEFT JOIN Project AS B ON A.projectId=B.id WHERE A.userId=${userId}`;
+      return allProject;
+    } catch(err) {
+      throw err
+    }
+  }
 };

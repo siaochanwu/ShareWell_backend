@@ -32,11 +32,24 @@ module.exports = class itemController {
     }
   }
 
-  async getOneItemRelations(req, res, next) {
-    const {itemId, payer} = req.body
-    console.log(req.body, itemId, payer)
+  
+  async deleteItem(req, res, next) {
+    const {id} = req.params
     try{
-      const OneItemRelations = await itemModel.getItemPaymentRelation(itemId, payer)
+      const deleteOneItem = await itemModel.deleteOneItem(id)
+      res.status(200).json({
+        data: deleteOneItem,
+        message: 'deleteOneItem'
+      })
+    } catch(err) {
+      return res.status(500).json({ success: false, message: err.message });
+    }
+  }
+
+  async getOneItemRelations(req, res, next) {
+    const {itemId} = req.body
+    try{
+      const OneItemRelations = await itemModel.getItemPaymentRelation(itemId)
       res.status(200).json({
         data: OneItemRelations,
         message: 'OneItemRelations'
@@ -45,4 +58,33 @@ module.exports = class itemController {
       return res.status(500).json({ success: false, message: err.message });
     }
   }
+
+  async getPaymentByUserAndProject(req, res, next) {
+    const {userId} = req.body
+    try{
+      const paymentByUserAndProject = await itemModel.getPaymentTotalByUserAndProject(userId)
+      res.status(200).json({
+        data: paymentByUserAndProject,
+        message: 'paymentByUserAndProject'
+      })
+    } catch(err) {
+      return res.status(500).json({ success: false, message: err.message });
+    }
+  }
+
+  async getUserItem(req, res, next) {
+    const {userId} = req.body
+    const {projectid} = req.params
+    try{
+      const getUserItems = await itemModel.findUserItems(userId, projectid)
+      res.status(200).json({
+        data: getUserItems,
+        message: 'getUserItems'
+      })
+    } catch(err) {
+      return res.status(500).json({ success: false, message: err.message });
+    }
+  }
+
+
 }
