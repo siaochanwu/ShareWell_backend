@@ -32,6 +32,19 @@ module.exports = class itemController {
     }
   }
 
+  async updateItem(req, res, next) {
+    const {id} = req.params;
+    try{
+      const updateItem = await itemModel.updateItem(id, req.body)
+      res.status(200).json({
+        data: updateItem,
+        message: 'updateItem'
+      })
+    } catch(err) {
+      return res.status(500).json({ success: false, message: err.message });
+    }
+  }
+
   
   async deleteItem(req, res, next) {
     const {id} = req.params

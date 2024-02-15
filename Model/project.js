@@ -6,6 +6,7 @@ const prisma = new PrismaClient();
 module.exports = class Project {
   constructor() {
     this.findAllProjectGroupData = this.findAllProjectGroupData.bind();
+    this.createProjectGroup = this.createProjectGroup.bind();
   }
 
   //find all
@@ -20,8 +21,8 @@ module.exports = class Project {
         });
       }
       return allProject;
-    } catch(err) {
-      throw err
+    } catch (err) {
+      throw err;
     }
   }
 
@@ -32,8 +33,8 @@ module.exports = class Project {
         await prisma.$queryRaw`SELECT U.name FROM ProjectGroup as P 
         LEFT JOIN User as U ON P.userId=U.id where P.projectId=${projectId}`;
       return allProjectGroup;
-    } catch(err) {
-      throw err
+    } catch (err) {
+      throw err;
     }
   }
 
@@ -44,16 +45,16 @@ module.exports = class Project {
           id: id,
         },
       });
-  
+
       project.users = [];
       const data = await this.findAllProjectGroupData(id);
       data.map((item) => {
         project.users.push(item.name);
       });
-  
+
       return project;
-    } catch(err) {
-      throw err
+    } catch (err) {
+      throw err;
     }
   }
 
@@ -74,31 +75,125 @@ module.exports = class Project {
             location,
           },
         });
-  
+
         for (let i = 0; i < users.length; i++) {
-          await tx.ProjectGroup.create({
-            data: {
-              id: uuidv4(),
-              userId,
-              projectId,
-            }
-          })
+          await this.createProjectGroup(users[i], projectId);
         }
         return createProjectData;
-      })
+      });
     } catch (err) {
-      console.error('Transaction failed, rollback...', err.message);
+      console.error("Transaction failed, rollback...", err.message);
       prisma.$rollback();
     } finally {
       await prisma.$disconnect();
     }
   }
 
+  async createProjectGroup(userId, projectId) {
+    try {
+      const projectGroup = await prisma.projectGroup.create({
+        data: {
+          id: uuidv4(),
+          userId,
+          projectId,
+        },
+      });
+    } catch (err) {
+      throw err;
+    }
+  }
 
   //update
   //check whether projectGroup change
+  async updateProject(projectId, data) {
+    const { location, currency, startDate, endDate, name, users } = data;
 
-  
+    try {
+      const itemExist = await prisma.item.findFirst({
+        where: {
+          projectId: projectId,
+        },
+      });
+
+      if (itemExist) {
+        //if item exist then cannot edit users 只增不減
+        await prisma.$transaction(async (tx) => {
+          const createProjectData = await tx.Project.update({
+            where: {
+              id: projectId,
+            },
+            data: {
+              name,
+              startDate: new Date(startDate),
+              endDate: new Date(endDate),
+              currency,
+              location,
+            },
+          });
+
+          for (let i = 0; i < users.length; i++) {
+            const exist = await tx.ProjectGroup.findFirst({
+              where: {
+                userId: users[i],
+                projectId,
+              },
+            });
+
+            if (!exist) {
+              await tx.ProjectGroup.create({
+                data: {
+                  id: uuidv4(),
+                  userId: users[i],
+                  projectId,
+                },
+              });
+            }
+          }
+          return createProjectData;
+        });
+      } else {
+        //if not exist, then compare new and old
+        //刪除原本的
+        //新增新的
+        await prisma.$transaction(async (tx) => {
+          const createProjectData = await tx.Project.update({
+            where: {
+              id: projectId,
+            },
+            data: {
+              name,
+              startDate: new Date(startDate),
+              endDate: new Date(endDate),
+              currency,
+              location,
+            },
+          });
+
+          await tx.ProjectGroup.deleteMany({
+            where: {
+              projectId,
+            },
+          });
+
+          for (let i = 0; i < users.length; i++) {
+            await tx.ProjectGroup.create({
+              data: {
+                id: uuidv4(),
+                userId: users[i],
+                projectId,
+              },
+            });
+          }
+          return createProjectData;
+        });
+      }
+    } catch (err) {
+      console.error("Transaction failed, rollback...", err.message);
+      prisma.$rollback();
+    } finally {
+      await prisma.$disconnect();
+    }
+  }
 
   //delete project and projectGroup
   async deleteProject(projectId) {
@@ -114,20 +209,21 @@ module.exports = class Project {
             projectId: projectId,
           },
         });
-  
+
         return deleteProjectData;
-      })
+      });
     } catch (e) {
-      console.error('Transaction failed, rollback...', err.message);
+      console.error("Transaction failed, rollback...", err.message);
       prisma.$rollback();
     } finally {
       await prisma.$disconnect();
     }
   }
 
-  async findOneProjectGroup(projectId){
+  async findOneProjectGroup(projectId) {
     try {
-      const findProjectGroup = await prisma.$queryRaw`SELECT U.name, U.id FROM ProjectGroup as P LEFT JOIN User as U ON P.userId=U.id where P.projectId=${projectId}`;
+      const findProjectGroup =
+        await prisma.$queryRaw`SELECT U.name, U.id FROM ProjectGroup as P LEFT JOIN User as U ON P.userId=U.id where P.projectId=${projectId}`;
       return findProjectGroup;
     } catch (e) {
       console.log(e);
@@ -137,10 +233,11 @@ module.exports = class Project {
 
   async findUserProject(userId) {
     try {
-      const allProject = await prisma.$queryRaw`SELECT B.* FROM ProjectGroup AS A LEFT JOIN Project AS B ON A.projectId=B.id WHERE A.userId=${userId}`;
+      const allProject =
+        await prisma.$queryRaw`SELECT B.* FROM ProjectGroup AS A LEFT JOIN Project AS B ON A.projectId=B.id WHERE A.userId=${userId}`;
       return allProject;
-    } catch(err) {
-      throw err
+    } catch (err) {
+      throw err;
     }
   }
 };

@@ -22,7 +22,7 @@ router.delete('/users/:id', user.deleteUser);
 router.get('/projects', project.getAllProject);
 router.get('/projects/:projectid', project.getOneProject);
 router.post('/projects', project.createProject);
-//UPDATE PROJECT
+router.put('/projects/:projectid', project.updateProject)//UPDATE PROJECT
 router.delete('/projects/:projectid', project.deleteProject);
 
 
@@ -31,6 +31,7 @@ router.delete('/projects/:projectid', project.deleteProject);
 router.get('/items/:id', item.getAllItems)
 router.post('/items', item.createItem)
 router.delete('/items/:id', item.deleteItem)
+router.put('/items/:id', item.updateItem)
 router.get('/projectUser/:projectid', project.getOneProjectUser); //各專案的參與者
 router.post('/itemRelations', item.getOneItemRelations)//支付關係
 

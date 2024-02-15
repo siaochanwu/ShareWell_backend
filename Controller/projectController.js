@@ -38,6 +38,18 @@ module.exports = class userController{
     }
   }
 
+
+  async updateProject(req, res, next) {
+    const {projectid} = req.params
+    try {
+      console.log(req.body)
+      const updateProjectData = await projectModel.updateProject(projectid, req.body)
+      res.status(200).json({ data: updateProjectData, message: 'updateProjectData' });
+    } catch(err) {
+      return res.status(500).json({ success: false, message: err.message });
+    }
+  }
+
   async deleteProject(req, res, next) {
     console.log(req.params)
     const {projectid} = req.params
